@@ -121,7 +121,7 @@ except:
     pass
 
 
-def getImageUrl(questionID=None):
+def getImageUrl(questionID):
     url = "https://www.zhihu.com/node/QuestionAnswerListV2"
     method = 'next'
     size = 10
@@ -153,7 +153,7 @@ def getImageUrl(questionID=None):
                 allImageUrl.append(imageUrl)
 
 
-def saveImagesFromUrl(filePath, questionID=23147606):
+def saveImagesFromUrl(filePath, questionID):
     imagesUrl = getImageUrl(questionID)
     print "图片数: ", len(imagesUrl)
     print 'save_pictures function'
@@ -198,7 +198,7 @@ if __name__ == '__main__':
         if input:
             saveImagesFromUrl('Picture', input)
         else:
-            saveImagesFromUrl('Picture')
+            saveImagesFromUrl('Picture', 23147606)
 
     else:
         account = input('请输入你的用户名\n>  ')
