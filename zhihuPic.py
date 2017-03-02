@@ -141,11 +141,11 @@ def getImageUrl(questionID):
         page = session.post(url, headers=headers, data=postdata)
         ret = eval(page.text)
         listMsg = ret['msg']
-
-        if not listMsg or size > 300:
+        print listMsg
+        if not listMsg or size > 20:
             print "图片URL获取完毕, 页数: ", (size - 10) / 10
             return allImageUrl
-        pattern = re.compile('data-actualsrc="(.*?)">', re.S)
+        pattern = re.compile('data-original="(.*?)">', re.S)
         for pageUrl in listMsg:
             items = re.findall(pattern, pageUrl)
             for item in items:  # 这里去掉得到的图片URL中的转义字符'\\'
@@ -158,7 +158,7 @@ def saveImagesFromUrl(filePath, questionID):
     print "图片数: ", len(imagesUrl)
     print 'save_pictures function'
     p = multiprocessing.Pool(40)
-    path = filePath + '/' + questionID
+    path = filePath + '/' + str(questionID)
     if not os.path.exists(path):
         os.makedirs(path)
     for item in imagesUrl:
@@ -170,7 +170,6 @@ def saveImagesFromUrl(filePath, questionID):
 
 
 def save_pic(pic_url, filename):
-    print 'save_pic'
     count = 0
     while True:
         try:
