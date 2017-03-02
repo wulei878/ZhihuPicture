@@ -141,8 +141,7 @@ def getImageUrl(questionID):
         page = session.post(url, headers=headers, data=postdata)
         ret = eval(page.text)
         listMsg = ret['msg']
-        print listMsg
-        if not listMsg or size > 20:
+        if not listMsg or size > 300:
             print "图片URL获取完毕, 页数: ", (size - 10) / 10
             return allImageUrl
         pattern = re.compile('data-original="(.*?)">', re.S)
