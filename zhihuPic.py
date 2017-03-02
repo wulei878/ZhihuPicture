@@ -195,7 +195,10 @@ if __name__ == '__main__':
     if isLogin():
         print('您已经登录')
         input = raw_input('请输入要爬取的问题id\n> ')
-        saveImagesFromUrl('Picture', input)
+        if input:
+            saveImagesFromUrl('Picture', input)
+        else:
+            saveImagesFromUrl('Picture')
 
     else:
         account = input('请输入你的用户名\n>  ')
