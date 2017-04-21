@@ -17,6 +17,7 @@ except:
 
 import multiprocessing
 import socket
+import sys
 
 agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
 headers = {
@@ -50,6 +51,7 @@ def get_xsrf():
 def get_captcha():
     t = str(int(time.time() * 1000))
     captcha_url = 'https://www.zhihu.com/captcha.gif?r=' + t + "&type=login"
+    print (captcha_url)
     r = session.get(captcha_url, headers=headers)
     with open('captcha.jpg', 'wb') as f:
         f.write(r.content)
@@ -100,18 +102,18 @@ def login(secret, account):
             'remember_me': 'true',
             'email': account,
         }
-    try:
-        # 不需要验证码直接登录成功
-        login_page = session.post(post_url, data=postdata, headers=headers)
-        login_code = login_page.text
-        print(login_page.status_code)
-        print(login_code)
-    except:
+        # try:
+        #     # 不需要验证码直接登录成功
+        #     login_page = session.post(post_url, data=postdata, headers=headers)
+        #     login_code = login_page.text
+        #     print(login_page.status_code)
+        #     print(login_code)
+        # except:
         # 需要输入验证码后才能登录成功
-        postdata["captcha"] = get_captcha()
-        login_page = session.post(post_url, data=postdata, headers=headers)
-        login_code = eval(login_page.text)
-        print(login_code['msg'])
+    postdata["captcha"] = get_captcha()
+    login_page = session.post(post_url, data=postdata, headers=headers)
+    login_code = eval(login_page.text)
+    print(login_code['msg'])
     session.cookies.save()
 
 
@@ -129,7 +131,7 @@ def getImageUrl(questionID):
 
     # 循环直至爬完整个问题的回答
     while (True):
-        print '===========offset: ', size
+        print ("===========offset: ", size)
         postdata = {
             'method': 'next',
             'params': '{"url_token":' + str(questionID) + ',"pagesize": "10",' + \
@@ -142,7 +144,7 @@ def getImageUrl(questionID):
         ret = eval(page.text)
         listMsg = ret['msg']
         if not listMsg or size > 300:
-            print "图片URL获取完毕, 页数: ", (size - 10) / 10
+            print ("图片URL获取完毕, 页数: ", (size - 10) / 10)
             return allImageUrl
         pattern = re.compile('data-original="(.*?)">', re.S)
         for pageUrl in listMsg:
@@ -154,8 +156,7 @@ def getImageUrl(questionID):
 
 def saveImagesFromUrl(filePath, questionID):
     imagesUrl = getImageUrl(questionID)
-    print "图片数: ", len(imagesUrl)
-    print 'save_pictures function'
+    print ("图片数: ", len(imagesUrl))
     p = multiprocessing.Pool(40)
     path = filePath + '/' + str(questionID)
     if not os.path.exists(path):
@@ -173,7 +174,7 @@ def save_pic(pic_url, filename):
     while True:
         try:
             print ('picture ', filename, ' begin...')
-            ir = requests.get(pic_url, stream=True)
+            ir = requests.get(pic_url, stream=True, timeout=30)
             if ir.status_code == 200:
                 with open(filename, 'wb') as f:
                     for chunk in ir:
@@ -181,7 +182,7 @@ def save_pic(pic_url, filename):
         except socket.timeout:
             print ('timeout: ', filename, 'count: ', count)
             count += 1
-        except Exception, e:
+        except Exception as e:
             print (filename, 'other fault: ', e)
             count += 1
         else:
@@ -189,16 +190,22 @@ def save_pic(pic_url, filename):
             break
 
 
-if __name__ == '__main__':
+def checkLogin():
     if isLogin():
         print('您已经登录')
-        input = raw_input('请输入要爬取的问题id\n> ')
-        if input:
-            saveImagesFromUrl('Picture', input)
-        else:
-            saveImagesFromUrl('Picture', 23147606)
-
+        ids = questionIDs.split(' ')
+        print (ids)
+        for id in ids:
+            print (id)
+            saveImagesFromUrl('Picture', id)
     else:
         account = input('请输入你的用户名\n>  ')
         secret = input("请输入你的密码\n>  ")
         login(secret, account)
+        checkLogin()
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        questionIDs = input('请输入要爬取的问题id(如有多个id，请用空格隔开): ')
+    checkLogin()
